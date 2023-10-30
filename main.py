@@ -39,32 +39,6 @@ def normalize(data: list, norm: float) -> list:
     return data
 
 
-def plot_ecdf(data: list, normalize_to_min=False):
-    if normalize_to_min:
-        data = normalize(data, np.array(data).min())
-
-    ecdf = ECDF(data)
-    figure, axes = pyplot.subplots()
-    axes.set_xlabel('Runtimes')
-    axes.set_ylabel('Percent')
-    axes.set_title('CDF of A2A in NDv2')
-
-    axes.set_yticks(np.linspace(0, 1, num=11))
-    axes.plot(ecdf.x, ecdf.y)
-    pyplot.grid()
-    pyplot.xlim(1, 6)
-    pyplot.show()
-
-
-def plot_data(data: list):
-    figure, ax = pyplot.subplots()
-    ax.set_ylabel('Runtimes')
-    ax.set_title('Runtimes of A2A in NDv2')
-    pyplot.plot(np.linspace(1, len(data), num=len(data)), data)
-    pyplot.grid()
-    pyplot.show()
-
-
 def plot_runtimes(data: list):
     np_duration = np.array(data)
     min_duration = np_duration.min()
@@ -73,9 +47,6 @@ def plot_runtimes(data: list):
 
     runtime_x = np.linspace(1, len(data), num=len(data))
     runtime_y = data
-
-    # Slowdown
-    # slowdown_ecdf = ECDF(normalize(duration_data, min_duration))
 
     fig, axs = pyplot.subplots(2, dpi=300)
     fig.suptitle('Runtimes of All-to-All in Training GPT-3 350M MoE on NDv2', fontweight='bold')
@@ -97,6 +68,7 @@ def plot_runtimes(data: list):
     pyplot.show()
 
 
+# Source: https://matplotlib.org/stable/gallery/subplots_axes_and_figures/axes_zoom_effect.html
 def connect_bbox(bbox1, bbox2,
                  loc1a, loc2a, loc1b, loc2b,
                  prop_lines, prop_patches=None):
@@ -123,6 +95,7 @@ def connect_bbox(bbox1, bbox2,
     return c1, c2, bbox_patch1, bbox_patch2, p
 
 
+# Source: https://matplotlib.org/stable/gallery/subplots_axes_and_figures/axes_zoom_effect.html
 def zoom_effect01(axis1, axis2, xmin, xmax, **kwargs):
     """
     Connect *ax1* and *ax2*. The *xmin*-to-*xmax* range in both axes will
@@ -161,19 +134,11 @@ def zoom_effect01(axis1, axis2, xmin, xmax, **kwargs):
     return c1, c2, bbox_patch1, bbox_patch2, p
 
 
-if __name__ == '__main__':
-    duration_data = get_collective_duration(
-        "A2A_trace.txt",
-        r"(\d+\.?\d+)",
-        8,
-        2)
-
-    np_d = np.array(duration_data)
+def plot_ecdf(data: list):
+    np_d = np.array(data)
     min_d = np_d.min()
-    max_d = np_d.max()
-    mean_d = np_d.mean()
 
-    slowdown_ecdf = ECDF(normalize(duration_data, min_d))
+    slowdown_ecdf = ECDF(normalize(data, min_d))
     #  print(np.where(np.array(slowdown_ecdf.x) == 0.5))
     median_cdf = bisect.bisect(slowdown_ecdf.y, 0.5)
 
@@ -211,3 +176,15 @@ if __name__ == '__main__':
     ax2.set_xlabel(r"Slowdown Factor (Zoomed-in)", fontweight='bold', fontsize=8)
     ax2.grid()
     pyplot.show()
+
+
+if __name__ == '__main__':
+    duration_data = get_collective_duration(
+        "A2A_trace.txt",
+        r"(\d+\.?\d+)",
+        8,
+        2)
+
+    #  Uncomment either of the following to generate the plots.
+    # plot_runtimes(duration_data)
+    # plot_ecdf(duration_data)
