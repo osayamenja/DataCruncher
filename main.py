@@ -137,8 +137,7 @@ def zoom_effect01(axis1, axis2, xmin, xmax, **kwargs):
     return c1, c2, bbox_patch1, bbox_patch2, p
 
 
-def plot_ecdf(data: list):
-    data = normalize(data, 1 / 1000)
+def plot_ecdf(data: list, x_title: str, x_unit: str, title:str):
     np_d = np.array(data)
     min_d = np_d.min()
 
@@ -147,7 +146,7 @@ def plot_ecdf(data: list):
     median_cdf = bisect.bisect(slowdown_ecdf.y, 0.5)
 
     f, ax2 = pyplot.subplots(dpi=300)
-    f.suptitle('CDF for All-to-All Runtimes', fontweight='bold')
+    f.suptitle(title, fontweight='bold')
 
     # ax1.plot(slowdown_ecdf.x, slowdown_ecdf.y)
     # ax1.set_yticks(np.linspace(0, 1, num=11))
@@ -158,7 +157,7 @@ def plot_ecdf(data: list):
     ax2.plot(slowdown_ecdf.x, slowdown_ecdf.y, 'tab:green')
     ax2.set_yticks(np.linspace(0, 1, num=11))
     ax2.tick_params(axis='x', labelsize=8)
-    ax2.set_xlim(left=min_d, right=10)
+    ax2.set_xlim(left=min_d, right=8)
     #  ax2.axvline(x=slowdown_ecdf.x[median_cdf], linewidth=1, ymax=0.5, color='#ff2400')
     # float("{:.1f}".format(slowdown_ecdf.x[median_cdf]))
     ax2.annotate('Median',
@@ -171,13 +170,13 @@ def plot_ecdf(data: list):
 
     filtered_data = [v for v in slowdown_ecdf.x if not math.isnan(v) and not math.isinf(v)]
 
-    stats = (f'$mean$ = {np.array(filtered_data).mean():.2f}\n'
-             f'$median$ = {slowdown_ecdf.x[median_cdf]:.2f}')
+    stats = (f'$mean$ = {np.array(filtered_data).mean():.2f}{x_unit}\n'
+             f'$median$ = {slowdown_ecdf.x[median_cdf]:.2f}{x_unit}')
     bbox = dict(boxstyle='round', fc='blanchedalmond', ec='orange', alpha=0.5)
     ax2.text(0.8, 0.7, stats, fontsize=8, bbox=bbox,
              transform=ax2.transAxes, horizontalalignment='right')
 
-    ax2.set_xlabel(r"Runtimes (ms)", fontweight='bold', fontsize=8)
+    ax2.set_xlabel(x_title, fontweight='bold', fontsize=8)
     ax2.grid()
     pyplot.show()
 
@@ -442,12 +441,16 @@ def multi_node_amdahl_plot(p1: float, p2: float, title: str):
 
 if __name__ == '__main__':
     duration_data = get_collective_duration(
-        "A2A_trace.txt",
+        "data/A2A_trace.txt",
         r"(\d+\.?\d+)",
         8,
         2)
     # plot_runtimes(duration_data)
-    plot_ecdf(duration_data)
+    # plot_ecdf(normalize(duration_data, 1 / 1000))
+    plot_ecdf(normalize(duration_data, np.array(duration_data).min()),
+              r"Slowdown Factor",
+              "X",
+              'CDF for All-to-All Slowdown')
 
     # Commented keywords are included in the misc category.
     # We removed them for a nicer pie chart.
