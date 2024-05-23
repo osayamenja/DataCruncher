@@ -1,0 +1,4 @@
+
+Nodes used for collectives: nid[008273,008277,008280,008473]
+Nodes used for p2p: nid[008689,008692]
+GPU Type: Check any *nccl* file
